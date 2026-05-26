@@ -14,9 +14,8 @@ function Index() {
   useEffect(() => {
     if (loading) return;
     if (!user) navigate({ to: "/login" });
-    else if (!profile?.is_verified) navigate({ to: "/onboarding" });
     else navigate({ to: "/home" });
-  }, [user, profile, loading, navigate]);
+  }, [user, loading, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
