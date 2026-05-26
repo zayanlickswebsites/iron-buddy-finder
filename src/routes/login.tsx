@@ -41,6 +41,11 @@ function LoginPage() {
           value={password} onChange={(e) => setPassword(e.target.value)}
           className="w-full bg-card border border-border rounded-xl px-4 py-3 outline-none focus:border-primary"
         />
+        <div className="flex justify-end">
+          <Link to="/forgot-password" className="text-sm text-primary font-medium">
+            Forgot password?
+          </Link>
+        </div>
         <button
           disabled={busy}
           className="w-full bg-primary text-primary-foreground font-semibold rounded-xl py-3.5 disabled:opacity-50"
