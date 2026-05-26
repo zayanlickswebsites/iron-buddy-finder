@@ -13,10 +13,9 @@ function AppLayout() {
   useEffect(() => {
     if (loading) return;
     if (!user) navigate({ to: "/login" });
-    else if (!profile?.is_verified) navigate({ to: "/onboarding" });
-  }, [user, profile, loading, navigate]);
+  }, [user, loading, navigate]);
 
-  if (loading || !profile?.is_verified) {
+  if (loading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Dumbbell className="w-10 h-10 text-primary animate-pulse" />
