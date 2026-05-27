@@ -1,14 +1,15 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -31,54 +32,57 @@
   --color-ring-offset-background: var(--background);
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
 
 :root {
-  --radius: 0.75rem;
-  /* GymLink dark theme */
-  --background: oklch(0.18 0.005 130);          /* #111210 */
-  --foreground: oklch(0.97 0.005 130);
-  --card: oklch(0.22 0.006 130);                /* #1A1C18 */
-  --card-foreground: oklch(0.97 0.005 130);
-  --popover: oklch(0.22 0.006 130);
-  --popover-foreground: oklch(0.97 0.005 130);
-  --primary: oklch(0.91 0.20 125);              /* #C8F135 lime */
-  --primary-foreground: oklch(0.15 0.005 130);
-  --secondary: oklch(0.28 0.008 130);
-  --secondary-foreground: oklch(0.97 0.005 130);
-  --muted: oklch(0.26 0.006 130);
-  --muted-foreground: oklch(0.65 0.008 130);
-  --accent: oklch(0.91 0.20 125);
-  --accent-foreground: oklch(0.15 0.005 130);
-  --destructive: oklch(0.6 0.21 25);
-  --destructive-foreground: oklch(0.97 0 0);
-  --success: oklch(0.91 0.20 125);
-  --success-foreground: oklch(0.15 0.005 130);
-  --border: oklch(0.3 0.008 130);
-  --input: oklch(0.3 0.008 130);
-  --ring: oklch(0.91 0.20 125);
+  --radius: 12px;
+  /* GymLink — Nike × Apple, flat premium dark */
+  --background: oklch(0.13 0.012 280);            /* #0A0A0F */
+  --foreground: oklch(0.96 0.005 280);            /* #F0F0F5 */
+  --card: oklch(0.17 0.014 280);                  /* #13131A */
+  --card-foreground: oklch(0.96 0.005 280);
+  --popover: oklch(0.17 0.014 280);
+  --popover-foreground: oklch(0.96 0.005 280);
+  --primary: oklch(0.60 0.21 263);                /* #3D6EFF */
+  --primary-foreground: oklch(0.98 0.005 280);
+  --secondary: oklch(0.22 0.015 280);             /* #1E1E2A */
+  --secondary-foreground: oklch(0.96 0.005 280);
+  --muted: oklch(0.22 0.015 280);
+  --muted-foreground: oklch(0.50 0.020 280);      /* #5A5A72 */
+  --accent: oklch(0.60 0.21 263);
+  --accent-foreground: oklch(0.98 0.005 280);
+  --destructive: oklch(0.62 0.24 25);             /* #FF4444 */
+  --destructive-foreground: oklch(0.98 0.005 280);
+  --success: oklch(0.76 0.18 155);                /* #23D18B */
+  --success-foreground: oklch(0.13 0.012 280);
+  --border: oklch(0.22 0.015 280);                /* #1E1E2A */
+  --input: oklch(0.22 0.015 280);
+  --ring: oklch(0.60 0.21 263);
 }
 
 .dark {
-  --background: oklch(0.18 0.005 130);
-  --foreground: oklch(0.97 0.005 130);
-  --card: oklch(0.22 0.006 130);
-  --card-foreground: oklch(0.97 0.005 130);
-  --popover: oklch(0.22 0.006 130);
-  --popover-foreground: oklch(0.97 0.005 130);
-  --primary: oklch(0.91 0.20 125);
-  --primary-foreground: oklch(0.15 0.005 130);
-  --secondary: oklch(0.28 0.008 130);
-  --secondary-foreground: oklch(0.97 0.005 130);
-  --muted: oklch(0.26 0.006 130);
-  --muted-foreground: oklch(0.65 0.008 130);
-  --accent: oklch(0.91 0.20 125);
-  --accent-foreground: oklch(0.15 0.005 130);
-  --destructive: oklch(0.6 0.21 25);
-  --destructive-foreground: oklch(0.97 0 0);
-  --border: oklch(0.3 0.008 130);
-  --input: oklch(0.3 0.008 130);
-  --ring: oklch(0.91 0.20 125);
+  --background: oklch(0.13 0.012 280);
+  --foreground: oklch(0.96 0.005 280);
+  --card: oklch(0.17 0.014 280);
+  --card-foreground: oklch(0.96 0.005 280);
+  --popover: oklch(0.17 0.014 280);
+  --popover-foreground: oklch(0.96 0.005 280);
+  --primary: oklch(0.60 0.21 263);
+  --primary-foreground: oklch(0.98 0.005 280);
+  --secondary: oklch(0.22 0.015 280);
+  --secondary-foreground: oklch(0.96 0.005 280);
+  --muted: oklch(0.22 0.015 280);
+  --muted-foreground: oklch(0.50 0.020 280);
+  --accent: oklch(0.60 0.21 263);
+  --accent-foreground: oklch(0.98 0.005 280);
+  --destructive: oklch(0.62 0.24 25);
+  --destructive-foreground: oklch(0.98 0.005 280);
+  --success: oklch(0.76 0.18 155);
+  --success-foreground: oklch(0.13 0.012 280);
+  --border: oklch(0.22 0.015 280);
+  --input: oklch(0.22 0.015 280);
+  --ring: oklch(0.60 0.21 263);
 }
 
 @layer base {
@@ -93,7 +97,27 @@
     border-color: var(--color-border);
   }
   body {
-    font-family: ui-sans-serif, system-ui, -apple-system, "SF Pro Display", "Inter", sans-serif;
+    font-family: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
+    font-feature-settings: "cv11", "ss01";
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  p {
+    line-height: 1.65;
+  }
+  .label-eyebrow {
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.75rem;
+    color: var(--color-muted-foreground);
+  }
+  .stat-number {
+    font-weight: 700;
+    color: var(--color-primary);
+    letter-spacing: -0.03em;
   }
 }
