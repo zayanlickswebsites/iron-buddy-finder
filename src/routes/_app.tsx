@@ -13,7 +13,8 @@ function AppLayout() {
   useEffect(() => {
     if (loading) return;
     if (!user) navigate({ to: "/login" });
-  }, [user, loading, navigate]);
+    else if (profile && !profile.is_verified) navigate({ to: "/onboarding" });
+  }, [user, profile, loading, navigate]);
 
   if (loading || !user) {
     return (

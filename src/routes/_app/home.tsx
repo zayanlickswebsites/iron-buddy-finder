@@ -1,10 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { TRAINING_TYPES, timeAgo } from "@/lib/format";
 import { toast } from "sonner";
-import { Plus, X, Users, Activity } from "lucide-react";
+import { Plus, X, Users, Activity, AlertCircle } from "lucide-react";
 
 export const Route = createFileRoute("/_app/home")({ component: HomePage });
 
@@ -63,6 +63,18 @@ function HomePage() {
     setMyCheckin(null); load();
     toast.success("Checked out");
   };
+  if (!profile?.gym_id) {
+    return (
+      <div className="px-5 pt-20 text-center">
+        <AlertCircle className="w-10 h-10 mx-auto text-primary mb-3" />
+        <h2 className="text-xl font-bold">Please complete your profile setup</h2>
+        <p className="text-sm text-muted-foreground mt-2">Verify your gym to start checking in.</p>
+        <Link to="/onboarding" className="inline-block mt-6 bg-primary text-primary-foreground font-semibold rounded-xl px-6 py-3">
+          Go to setup
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="px-5 pt-12">
