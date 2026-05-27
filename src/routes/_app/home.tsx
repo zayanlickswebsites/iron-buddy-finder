@@ -1,10 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { TRAINING_TYPES, timeAgo } from "@/lib/format";
 import { toast } from "sonner";
-import { Plus, X, Users, Activity } from "lucide-react";
+import { Plus, X, Users, Activity, AlertCircle } from "lucide-react";
 
 export const Route = createFileRoute("/_app/home")({ component: HomePage });
 
