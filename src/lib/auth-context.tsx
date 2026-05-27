@@ -19,6 +19,7 @@ type AuthCtx = {
   user: User | null;
   session: Session | null;
   profile: Profile | null;
+  profileLoaded: boolean;
   loading: boolean;
   refreshProfile: () => Promise<void>;
   signOut: () => Promise<void>;
@@ -29,36 +30,52 @@ const Ctx = createContext<AuthCtx | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [profileLoaded, setProfileLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const loadProfile = async (uid: string) => {
+  const loadProfile = async (uid: string, email: string | null) => {
+    setProfileLoaded(false);
     const { data } = await supabase.from("profiles").select("*").eq("id", uid).maybeSingle();
-    setProfile((data as Profile) ?? null);
+    if (data) {
+      setProfile(data as Profile);
+    } else {
+      // Auto-create blank profile if missing (e.g. trigger didn't fire)
+      const { data: created } = await supabase
+        .from("profiles")
+        .insert({ id: uid, email })
+        .select("*")
+        .maybeSingle();
+      setProfile((created as Profile) ?? null);
+    }
+    setProfileLoaded(true);
   };
 
   useEffect(() => {
-    // Listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s);
       if (s?.user) {
-        // defer DB call to avoid deadlock
-        setTimeout(() => loadProfile(s.user.id), 0);
+        setTimeout(() => loadProfile(s.user.id, s.user.email ?? null), 0);
       } else {
         setProfile(null);
+        setProfileLoaded(true);
       }
     });
 
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       setSession(s);
-      if (s?.user) loadProfile(s.user.id).finally(() => setLoading(false));
-      else setLoading(false);
+      if (s?.user) {
+        loadProfile(s.user.id, s.user.email ?? null).finally(() => setLoading(false));
+      } else {
+        setProfileLoaded(true);
+        setLoading(false);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
   const refreshProfile = async () => {
-    if (session?.user) await loadProfile(session.user.id);
+    if (session?.user) await loadProfile(session.user.id, session.user.email ?? null);
   };
 
   const signOut = async () => {
@@ -68,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <Ctx.Provider value={{ user: session?.user ?? null, session, profile, loading, refreshProfile, signOut }}>
+    <Ctx.Provider value={{ user: session?.user ?? null, session, profile, profileLoaded, loading, refreshProfile, signOut }}>
       {children}
     </Ctx.Provider>
   );
