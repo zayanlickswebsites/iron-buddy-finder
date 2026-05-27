@@ -1,10 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { timeAgo } from "@/lib/format";
 import { toast } from "sonner";
-import { Users, Dumbbell, Check, X } from "lucide-react";
+import { Users, Dumbbell, Check, X, AlertCircle } from "lucide-react";
 
 export const Route = createFileRoute("/_app/workout")({ component: WorkoutPage });
 
