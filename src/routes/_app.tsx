@@ -7,14 +7,18 @@ import { Dumbbell } from "lucide-react";
 export const Route = createFileRoute("/_app")({ component: AppLayout });
 
 function AppLayout() {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, profileLoaded, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (loading) return;
-    if (!user) navigate({ to: "/login" });
-    else if (profile && !profile.is_verified) navigate({ to: "/onboarding" });
-  }, [user, profile, loading, navigate]);
+    if (!user) {
+      navigate({ to: "/login" });
+      return;
+    }
+    if (!profileLoaded) return;
+    if (!profile || !profile.is_verified) navigate({ to: "/onboarding" });
+  }, [user, profile, profileLoaded, loading, navigate]);
 
   if (loading || !user) {
     return (
