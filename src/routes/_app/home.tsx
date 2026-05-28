@@ -1,10 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { TRAINING_TYPES, timeAgo } from "@/lib/format";
 import { toast } from "sonner";
-import { Plus, X, Users, Activity, AlertCircle } from "lucide-react";
+import { Plus, X, Users, Activity, AlertCircle, MessageCircle } from "lucide-react";
 
 export const Route = createFileRoute("/_app/home")({ component: HomePage });
 
@@ -23,6 +23,7 @@ type JoinReq = { id: string; checkin_id: string; status: string };
 
 function HomePage() {
   const { user, profile } = useAuth();
+  const navigate = useNavigate();
   const [checkins, setCheckins] = useState<Checkin[]>([]);
   const [myCheckin, setMyCheckin] = useState<Checkin | null>(null);
   const [showDialog, setShowDialog] = useState(false);
@@ -153,13 +154,18 @@ function HomePage() {
               {!mine && c.is_open_to_join && (
                 <div className="mt-3">
                   {req ? (
-                    <span className={`inline-block text-xs font-semibold px-3 py-1.5 rounded-full ${
-                      req.status === "accepted" ? "bg-primary text-primary-foreground" :
-                      req.status === "declined" ? "bg-muted text-muted-foreground" :
-                      "bg-muted text-foreground"
-                    }`}>
-                      {req.status === "pending" ? "Request pending" : req.status === "accepted" ? "Accepted" : "Declined"}
-                    </span>
+                    req.status === "accepted" ? (
+                      <button onClick={() => navigate({ to: "/chat/$id", params: { id: req.id } })}
+                        className="w-full bg-primary text-primary-foreground text-sm font-semibold py-2.5 rounded-xl flex items-center justify-center gap-2">
+                        <MessageCircle className="w-4 h-4" /> Open Chat
+                      </button>
+                    ) : (
+                      <span className={`inline-block text-xs font-semibold px-3 py-1.5 rounded-full ${
+                        req.status === "declined" ? "bg-muted text-muted-foreground" : "bg-muted text-foreground"
+                      }`}>
+                        {req.status === "pending" ? "Request pending" : "Declined"}
+                      </span>
+                    )
                   ) : (
                     <button onClick={() => sendReq(c.id)}
                       className="w-full bg-primary text-primary-foreground text-sm font-semibold py-2.5 rounded-xl active:scale-[0.98] transition">

@@ -1,10 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { timeAgo } from "@/lib/format";
 import { toast } from "sonner";
-import { Users, Dumbbell, Check, X, AlertCircle } from "lucide-react";
+import { Users, Dumbbell, Check, X, AlertCircle, MessageCircle } from "lucide-react";
 
 export const Route = createFileRoute("/_app/workout")({ component: WorkoutPage });
 
@@ -29,14 +29,17 @@ type OutgoingReq = {
   status: string;
 };
 
+type AcceptedChat = { jrId: string; name: string };
+
 const THREE_HRS = 3 * 60 * 60 * 1000;
 
 function WorkoutPage() {
   const { user, profile } = useAuth();
+  const navigate = useNavigate();
   const [sessions, setSessions] = useState<OpenSession[]>([]);
   const [incoming, setIncoming] = useState<IncomingReq[]>([]);
   const [outgoing, setOutgoing] = useState<Record<string, OutgoingReq>>({});
-  const [accepted, setAccepted] = useState<{ name: string }[]>([]);
+  const [chats, setChats] = useState<AcceptedChat[]>([]);
 
   const load = async () => {
     if (!profile?.gym_id || !user) return;
@@ -60,11 +63,12 @@ function WorkoutPage() {
     (out ?? []).forEach((r) => (map[(r as OutgoingReq).checkin_id] = r as OutgoingReq));
     setOutgoing(map);
 
-    // Incoming: requests for MY active checkin
+    // My active checkin → incoming requests
     const { data: myCk } = await supabase
       .from("checkins").select("id").eq("user_id", user.id).eq("is_active", true).maybeSingle();
-    if (myCk) {
-      const ckId = (myCk as { id: string }).id;
+    const ckId = (myCk as { id: string } | null)?.id ?? null;
+
+    if (ckId) {
       const { data: reqs } = await supabase
         .from("join_requests")
         .select("id,requester_id,checkin_id,status")
@@ -72,7 +76,7 @@ function WorkoutPage() {
         .eq("status", "pending");
       const reqList = (reqs ?? []) as Omit<IncomingReq, "requester_name">[];
       const ids = reqList.map((r) => r.requester_id);
-      let names: Record<string, string> = {};
+      const names: Record<string, string> = {};
       if (ids.length) {
         const { data: profs } = await supabase
           .from("profiles").select("id,first_name").in("id", ids);
@@ -82,25 +86,50 @@ function WorkoutPage() {
         });
       }
       setIncoming(reqList.map((r) => ({ ...r, requester_name: names[r.requester_id] ?? "Someone" })));
-
-      // Accepted partners (people who requested to join me OR me joining others — accepted)
-      const { data: acc } = await supabase
-        .from("join_requests")
-        .select("requester_id,checkin_id,status")
-        .eq("status", "accepted")
-        .or(`requester_id.eq.${user.id},checkin_id.eq.${ckId}`);
-      const partnerIds = (acc ?? []).map((r) => {
-        const rr = r as { requester_id: string; checkin_id: string };
-        return rr.requester_id === user.id ? null : rr.requester_id;
-      }).filter(Boolean) as string[];
-      if (partnerIds.length) {
-        const { data: profs } = await supabase
-          .from("profiles").select("first_name").in("id", partnerIds);
-        setAccepted((profs ?? []).map((p) => ({ name: (p as { first_name: string }).first_name ?? "" })));
-      } else setAccepted([]);
     } else {
-      setIncoming([]); setAccepted([]);
+      setIncoming([]);
     }
+
+    // All accepted chats (either as requester or as checkin owner)
+    const acceptedChats: AcceptedChat[] = [];
+    // a) I requested and got accepted
+    const { data: mine } = await supabase
+      .from("join_requests")
+      .select("id,checkin_id,status")
+      .eq("requester_id", user.id)
+      .eq("status", "accepted");
+    for (const r of (mine ?? []) as { id: string; checkin_id: string }[]) {
+      const { data: ck } = await supabase
+        .from("checkins").select("user_id").eq("id", r.checkin_id).maybeSingle();
+      const ownerId = (ck as { user_id: string } | null)?.user_id;
+      if (!ownerId) continue;
+      const { data: prof } = await supabase
+        .from("profiles").select("first_name").eq("id", ownerId).maybeSingle();
+      acceptedChats.push({
+        jrId: r.id,
+        name: (prof as { first_name: string | null } | null)?.first_name ?? "Partner",
+      });
+    }
+    // b) Someone requested my checkin and I accepted
+    if (ckId) {
+      const { data: theirs } = await supabase
+        .from("join_requests")
+        .select("id,requester_id,status")
+        .eq("checkin_id", ckId)
+        .eq("status", "accepted");
+      const list = (theirs ?? []) as { id: string; requester_id: string }[];
+      if (list.length) {
+        const { data: profs } = await supabase
+          .from("profiles").select("id,first_name").in("id", list.map((r) => r.requester_id));
+        const nameMap: Record<string, string> = {};
+        (profs ?? []).forEach((p) => {
+          const pp = p as { id: string; first_name: string | null };
+          nameMap[pp.id] = pp.first_name ?? "Partner";
+        });
+        for (const r of list) acceptedChats.push({ jrId: r.id, name: nameMap[r.requester_id] ?? "Partner" });
+      }
+    }
+    setChats(acceptedChats);
   };
 
   useEffect(() => {
@@ -124,8 +153,15 @@ function WorkoutPage() {
   const respond = async (reqId: string, accept: boolean) => {
     const { error } = await supabase.from("join_requests")
       .update({ status: accept ? "accepted" : "declined" }).eq("id", reqId);
-    if (error) toast.error(error.message);
-    else { toast.success(accept ? "Accepted" : "Declined"); load(); }
+    if (error) return toast.error(error.message);
+    toast.success(accept ? "Accepted — chat opened" : "Declined");
+    await load();
+    if (accept) navigate({ to: "/chat/$id", params: { id: reqId } });
+  };
+
+  const openChatForCheckin = (checkinId: string) => {
+    const req = outgoing[checkinId];
+    if (req?.status === "accepted") navigate({ to: "/chat/$id", params: { id: req.id } });
   };
 
   if (!profile?.gym_id) {
@@ -172,10 +208,27 @@ function WorkoutPage() {
         </div>
       )}
 
-      {accepted.length > 0 && (
-        <div className="mt-6 bg-primary/10 border border-primary/30 rounded-2xl p-4">
-          <div className="text-sm">
-            You're training with <span className="font-bold text-primary">{accepted.map((a) => a.name).join(", ")}</span> today
+      {chats.length > 0 && (
+        <div className="mt-6">
+          <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2">
+            Chats
+          </div>
+          <div className="space-y-2">
+            {chats.map((c) => (
+              <Link key={c.jrId} to="/chat/$id" params={{ id: c.jrId }}
+                className="bg-card border border-border rounded-2xl p-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                    <MessageCircle className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="font-semibold">{c.name}</div>
+                    <div className="text-xs text-muted-foreground">Tap to chat</div>
+                  </div>
+                </div>
+                <span className="text-xs text-primary font-semibold">Open →</span>
+              </Link>
+            ))}
           </div>
         </div>
       )}
@@ -201,13 +254,18 @@ function WorkoutPage() {
                 </div>
               </div>
               {req ? (
-                <span className={`text-xs font-semibold px-3 py-1.5 rounded-full ${
-                  req.status === "accepted" ? "bg-primary text-primary-foreground" :
-                  req.status === "declined" ? "bg-muted text-muted-foreground" :
-                  "bg-muted text-foreground"
-                }`}>
-                  {req.status === "pending" ? "Pending" : req.status === "accepted" ? "Accepted" : "Declined"}
-                </span>
+                req.status === "accepted" ? (
+                  <button onClick={() => openChatForCheckin(s.id)}
+                    className="bg-primary text-primary-foreground text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1">
+                    <MessageCircle className="w-3.5 h-3.5" /> Chat
+                  </button>
+                ) : (
+                  <span className={`text-xs font-semibold px-3 py-1.5 rounded-full ${
+                    req.status === "declined" ? "bg-muted text-muted-foreground" : "bg-muted text-foreground"
+                  }`}>
+                    {req.status === "pending" ? "Pending" : "Declined"}
+                  </span>
+                )
               ) : (
                 <button onClick={() => sendReq(s.id)}
                   className="bg-primary text-primary-foreground text-sm font-semibold px-4 py-2 rounded-full">

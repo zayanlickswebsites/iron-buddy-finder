@@ -330,6 +330,30 @@ export type Database = {
           },
         ]
       }
+      messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          join_request_id: string
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          join_request_id: string
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          join_request_id?: string
+          sender_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -414,6 +438,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_access_chat: { Args: { _jr_id: string }; Returns: boolean }
       current_user_gym: { Args: never; Returns: string }
       is_admin: { Args: never; Returns: boolean }
       is_verified_at_gym: { Args: { _gym_id: string }; Returns: boolean }
