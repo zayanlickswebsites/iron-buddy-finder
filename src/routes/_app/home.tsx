@@ -154,13 +154,18 @@ function HomePage() {
               {!mine && c.is_open_to_join && (
                 <div className="mt-3">
                   {req ? (
-                    <span className={`inline-block text-xs font-semibold px-3 py-1.5 rounded-full ${
-                      req.status === "accepted" ? "bg-primary text-primary-foreground" :
-                      req.status === "declined" ? "bg-muted text-muted-foreground" :
-                      "bg-muted text-foreground"
-                    }`}>
-                      {req.status === "pending" ? "Request pending" : req.status === "accepted" ? "Accepted" : "Declined"}
-                    </span>
+                    req.status === "accepted" ? (
+                      <button onClick={() => navigate({ to: "/chat/$id", params: { id: req.id } })}
+                        className="w-full bg-primary text-primary-foreground text-sm font-semibold py-2.5 rounded-xl flex items-center justify-center gap-2">
+                        <MessageCircle className="w-4 h-4" /> Open Chat
+                      </button>
+                    ) : (
+                      <span className={`inline-block text-xs font-semibold px-3 py-1.5 rounded-full ${
+                        req.status === "declined" ? "bg-muted text-muted-foreground" : "bg-muted text-foreground"
+                      }`}>
+                        {req.status === "pending" ? "Request pending" : "Declined"}
+                      </span>
+                    )
                   ) : (
                     <button onClick={() => sendReq(c.id)}
                       className="w-full bg-primary text-primary-foreground text-sm font-semibold py-2.5 rounded-xl active:scale-[0.98] transition">
