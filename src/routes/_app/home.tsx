@@ -130,25 +130,47 @@ function HomePage() {
             <p className="text-sm">No one's training yet.<br />Be the first to check in.</p>
           </div>
         )}
-        {checkins.map((c) => (
-          <div key={c.id} className="bg-card border border-border rounded-2xl p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <div className="text-lg font-bold leading-tight">{c.training_type}</div>
-                <div className="text-xs text-muted-foreground mt-1">{timeAgo(c.checked_in_at)}</div>
+        {checkins.map((c) => {
+          const mine = c.user_id === user?.id;
+          const req = outgoing[c.id];
+          return (
+            <div key={c.id} className="bg-card border border-border rounded-2xl p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="text-lg font-bold leading-tight">{c.training_type}</div>
+                  <div className="text-xs text-muted-foreground mt-1">{timeAgo(c.checked_in_at)}</div>
+                </div>
+                {c.is_open_to_join ? (
+                  <span className="shrink-0 bg-primary text-primary-foreground text-[11px] font-semibold px-2.5 py-1 rounded-full">
+                    Open to Join
+                  </span>
+                ) : (
+                  <span className="shrink-0 bg-muted text-muted-foreground text-[11px] font-semibold px-2.5 py-1 rounded-full">
+                    Solo Session
+                  </span>
+                )}
               </div>
-              {c.is_open_to_join ? (
-                <span className="shrink-0 bg-primary text-primary-foreground text-[11px] font-semibold px-2.5 py-1 rounded-full">
-                  Open to Join
-                </span>
-              ) : (
-                <span className="shrink-0 bg-muted text-muted-foreground text-[11px] font-semibold px-2.5 py-1 rounded-full">
-                  Solo Session
-                </span>
+              {!mine && c.is_open_to_join && (
+                <div className="mt-3">
+                  {req ? (
+                    <span className={`inline-block text-xs font-semibold px-3 py-1.5 rounded-full ${
+                      req.status === "accepted" ? "bg-primary text-primary-foreground" :
+                      req.status === "declined" ? "bg-muted text-muted-foreground" :
+                      "bg-muted text-foreground"
+                    }`}>
+                      {req.status === "pending" ? "Request pending" : req.status === "accepted" ? "Accepted" : "Declined"}
+                    </span>
+                  ) : (
+                    <button onClick={() => sendReq(c.id)}
+                      className="w-full bg-primary text-primary-foreground text-sm font-semibold py-2.5 rounded-xl active:scale-[0.98] transition">
+                      Request to Join
+                    </button>
+                  )}
+                </div>
               )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {showDialog && (
