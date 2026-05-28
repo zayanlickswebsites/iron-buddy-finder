@@ -19,12 +19,15 @@ type Checkin = {
 
 const THREE_HRS = 3 * 60 * 60 * 1000;
 
+type JoinReq = { id: string; checkin_id: string; status: string };
+
 function HomePage() {
   const { user, profile } = useAuth();
   const [checkins, setCheckins] = useState<Checkin[]>([]);
   const [myCheckin, setMyCheckin] = useState<Checkin | null>(null);
   const [showDialog, setShowDialog] = useState(false);
   const [gymName, setGymName] = useState("");
+  const [outgoing, setOutgoing] = useState<Record<string, JoinReq>>({});
 
   const fresh = (c: Checkin) =>
     c.is_active && Date.now() - new Date(c.checked_in_at).getTime() < THREE_HRS;
@@ -40,6 +43,12 @@ function HomePage() {
     const list = ((data ?? []) as Checkin[]).filter(fresh);
     setCheckins(list);
     setMyCheckin(list.find((c) => c.user_id === user.id) ?? null);
+
+    const { data: out } = await supabase
+      .from("join_requests").select("id,checkin_id,status").eq("requester_id", user.id);
+    const map: Record<string, JoinReq> = {};
+    (out ?? []).forEach((r) => (map[(r as JoinReq).checkin_id] = r as JoinReq));
+    setOutgoing(map);
   };
 
   useEffect(() => {
@@ -51,11 +60,19 @@ function HomePage() {
     const channel = supabase
       .channel("checkins-home")
       .on("postgres_changes", { event: "*", schema: "public", table: "checkins" }, () => load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "join_requests" }, () => load())
       .subscribe();
     const interval = setInterval(load, 60_000);
     return () => { supabase.removeChannel(channel); clearInterval(interval); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.gym_id, user?.id]);
+
+  const sendReq = async (checkinId: string) => {
+    const { error } = await supabase.from("join_requests").insert({
+      requester_id: user!.id, checkin_id: checkinId,
+    });
+    if (error) toast.error(error.message); else { toast.success("Request sent"); load(); }
+  };
 
   const checkOut = async () => {
     if (!myCheckin) return;
