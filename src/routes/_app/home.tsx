@@ -23,6 +23,7 @@ type JoinReq = { id: string; checkin_id: string; status: string };
 
 function HomePage() {
   const { user, profile } = useAuth();
+  const navigate = useNavigate();
   const [checkins, setCheckins] = useState<Checkin[]>([]);
   const [myCheckin, setMyCheckin] = useState<Checkin | null>(null);
   const [showDialog, setShowDialog] = useState(false);
