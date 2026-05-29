@@ -81,7 +81,7 @@ function EventsPage() {
 /* ---------------- Events ---------------- */
 type Event = { id: string; title: string; description: string | null; event_date: string; max_attendees: number | null; gym_id: string };
 
-function EventsList({ isAdmin }: { isAdmin: boolean }) {
+function EventsList({ isAdmin, autoOpen, onAutoOpened }: { isAdmin: boolean; autoOpen?: boolean; onAutoOpened?: () => void }) {
   const { user, profile } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
   const [rsvps, setRsvps] = useState<Record<string, number>>({});
@@ -214,7 +214,7 @@ function EventForm({ gymId, gymName, userId, onClose, onDone }: {
 /* ---------------- Challenges ---------------- */
 type Challenge = { id: string; title: string; challenge_type: keyof typeof GYM_CHALLENGE_TYPES; start_date: string; end_date: string; gym_id: string };
 
-function ChallengesList({ isAdmin }: { isAdmin: boolean }) {
+function ChallengesList({ isAdmin, autoOpen, onAutoOpened }: { isAdmin: boolean; autoOpen?: boolean; onAutoOpened?: () => void }) {
   const { profile } = useAuth();
   const [items, setItems] = useState<Challenge[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -403,7 +403,7 @@ function ChallengeDetail({ challenge, onClose }: { challenge: Challenge; onClose
 /* ---------------- Inter-Gym Competitions ---------------- */
 type Competition = { id: string; title: string; description: string | null; competition_type: keyof typeof INTER_COMP_TYPES; start_date: string; end_date: string };
 
-function CompetitionsList({ isAdmin }: { isAdmin: boolean }) {
+function CompetitionsList({ isAdmin, autoOpen, onAutoOpened }: { isAdmin: boolean; autoOpen?: boolean; onAutoOpened?: () => void }) {
   const { profile } = useAuth();
   const [items, setItems] = useState<Competition[]>([]);
   const [showForm, setShowForm] = useState(false);
