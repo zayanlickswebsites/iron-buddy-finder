@@ -12,11 +12,32 @@ type Tab = "events" | "challenges" | "competitions";
 
 function EventsPage() {
   const [tab, setTab] = useState<Tab>("events");
+  const [chooser, setChooser] = useState(false);
+  const [autoOpen, setAutoOpen] = useState<Tab | null>(null);
   const { profile } = useAuth();
+  const isAdmin = !!profile?.is_admin;
+
+  const pick = (t: Tab) => {
+    setTab(t);
+    setAutoOpen(t);
+    setChooser(false);
+  };
 
   return (
     <div className="px-5 pt-12 pb-4">
-      <h1 className="text-3xl font-bold">Events</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Events</h1>
+        {isAdmin && (
+          <button
+            onClick={() => setChooser(true)}
+            aria-label="Create"
+            className="w-10 h-10 rounded-full flex items-center justify-center active:scale-95 transition"
+            style={{ backgroundColor: "#3D6EFF", color: "#FFFFFF" }}
+          >
+            <Plus className="w-5 h-5" />
+          </button>
+        )}
+      </div>
       <div className="flex gap-1 mt-5 bg-card border border-border rounded-xl p-1">
         {(["events", "challenges", "competitions"] as Tab[]).map((t) => (
           <button key={t} onClick={() => setTab(t)}
@@ -28,10 +49,31 @@ function EventsPage() {
         ))}
       </div>
       <div className="mt-6">
-        {tab === "events" && <EventsList isAdmin={!!profile?.is_admin} />}
-        {tab === "challenges" && <ChallengesList isAdmin={!!profile?.is_admin} />}
-        {tab === "competitions" && <CompetitionsList isAdmin={!!profile?.is_admin} />}
+        {tab === "events" && <EventsList isAdmin={isAdmin} autoOpen={autoOpen === "events"} onAutoOpened={() => setAutoOpen(null)} />}
+        {tab === "challenges" && <ChallengesList isAdmin={isAdmin} autoOpen={autoOpen === "challenges"} onAutoOpened={() => setAutoOpen(null)} />}
+        {tab === "competitions" && <CompetitionsList isAdmin={isAdmin} autoOpen={autoOpen === "competitions"} onAutoOpened={() => setAutoOpen(null)} />}
       </div>
+      {chooser && (
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-end" onClick={() => setChooser(false)}>
+          <div className="bg-card border-t border-border rounded-t-3xl w-full max-w-md mx-auto p-6 pb-10" onClick={(e) => e.stopPropagation()}>
+            <div className="w-10 h-1 bg-border rounded-full mx-auto mb-5" />
+            <h2 className="text-xl font-bold mb-4">Create</h2>
+            <div className="space-y-2">
+              {([
+                ["events", "New Event", Calendar],
+                ["challenges", "New Challenge", Trophy],
+                ["competitions", "New Competition", Building2],
+              ] as const).map(([k, label, Icon]) => (
+                <button key={k} onClick={() => pick(k)}
+                  className="w-full flex items-center gap-3 bg-background border border-border rounded-xl px-4 py-3.5 active:scale-[0.99] transition">
+                  <Icon className="w-5 h-5 text-primary" />
+                  <span className="font-semibold text-sm">{label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -39,13 +81,15 @@ function EventsPage() {
 /* ---------------- Events ---------------- */
 type Event = { id: string; title: string; description: string | null; event_date: string; max_attendees: number | null; gym_id: string };
 
-function EventsList({ isAdmin }: { isAdmin: boolean }) {
+function EventsList({ isAdmin, autoOpen, onAutoOpened }: { isAdmin: boolean; autoOpen?: boolean; onAutoOpened?: () => void }) {
   const { user, profile } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
   const [rsvps, setRsvps] = useState<Record<string, number>>({});
   const [myRsvps, setMyRsvps] = useState<Set<string>>(new Set());
   const [showForm, setShowForm] = useState(false);
   const [gymName, setGymName] = useState("");
+
+  useEffect(() => { if (autoOpen) { setShowForm(true); onAutoOpened?.(); } }, [autoOpen, onAutoOpened]);
 
   const load = async () => {
     if (!profile?.gym_id) return;
@@ -172,11 +216,13 @@ function EventForm({ gymId, gymName, userId, onClose, onDone }: {
 /* ---------------- Challenges ---------------- */
 type Challenge = { id: string; title: string; challenge_type: keyof typeof GYM_CHALLENGE_TYPES; start_date: string; end_date: string; gym_id: string };
 
-function ChallengesList({ isAdmin }: { isAdmin: boolean }) {
+function ChallengesList({ isAdmin, autoOpen, onAutoOpened }: { isAdmin: boolean; autoOpen?: boolean; onAutoOpened?: () => void }) {
   const { profile } = useAuth();
   const [items, setItems] = useState<Challenge[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
+
+  useEffect(() => { if (autoOpen) { setShowForm(true); onAutoOpened?.(); } }, [autoOpen, onAutoOpened]);
 
   const load = async () => {
     if (!profile?.gym_id) return;
@@ -361,12 +407,14 @@ function ChallengeDetail({ challenge, onClose }: { challenge: Challenge; onClose
 /* ---------------- Inter-Gym Competitions ---------------- */
 type Competition = { id: string; title: string; description: string | null; competition_type: keyof typeof INTER_COMP_TYPES; start_date: string; end_date: string };
 
-function CompetitionsList({ isAdmin }: { isAdmin: boolean }) {
+function CompetitionsList({ isAdmin, autoOpen, onAutoOpened }: { isAdmin: boolean; autoOpen?: boolean; onAutoOpened?: () => void }) {
   const { profile } = useAuth();
   const [items, setItems] = useState<Competition[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
   const [myGymIds, setMyGymIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => { if (autoOpen) { setShowForm(true); onAutoOpened?.(); } }, [autoOpen, onAutoOpened]);
 
   const load = async () => {
     if (!profile?.gym_id) return;
