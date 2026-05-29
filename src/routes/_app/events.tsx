@@ -89,6 +89,8 @@ function EventsList({ isAdmin, autoOpen, onAutoOpened }: { isAdmin: boolean; aut
   const [showForm, setShowForm] = useState(false);
   const [gymName, setGymName] = useState("");
 
+  useEffect(() => { if (autoOpen) { setShowForm(true); onAutoOpened?.(); } }, [autoOpen, onAutoOpened]);
+
   const load = async () => {
     if (!profile?.gym_id) return;
     const { data } = await supabase.from("events").select("*")
@@ -219,6 +221,8 @@ function ChallengesList({ isAdmin, autoOpen, onAutoOpened }: { isAdmin: boolean;
   const [items, setItems] = useState<Challenge[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
+
+  useEffect(() => { if (autoOpen) { setShowForm(true); onAutoOpened?.(); } }, [autoOpen, onAutoOpened]);
 
   const load = async () => {
     if (!profile?.gym_id) return;
@@ -409,6 +413,8 @@ function CompetitionsList({ isAdmin, autoOpen, onAutoOpened }: { isAdmin: boolea
   const [showForm, setShowForm] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
   const [myGymIds, setMyGymIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => { if (autoOpen) { setShowForm(true); onAutoOpened?.(); } }, [autoOpen, onAutoOpened]);
 
   const load = async () => {
     if (!profile?.gym_id) return;
