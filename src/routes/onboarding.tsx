@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Dumbbell, ChevronLeft, Search, X, Loader as Loader2 } from "lucide-react";
-import { glassStyles } from "./signup";
+import { glassStyles } from "@/styles/glass";
 
 export const Route = createFileRoute("/onboarding")({ component: Onboarding });
 
